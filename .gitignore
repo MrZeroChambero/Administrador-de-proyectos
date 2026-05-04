@@ -1,0 +1,53 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Archivos de logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Base de datos local (si usas SQLite o archivos de XAMPP)
+*.sql
+*.sqlite
+*.db
+
+# Archivos de configuración local
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos de estado del bot
+state.json
+*.json
+!package.json
+!package-lock.json
+!pnpm-lock.yaml
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos de cobertura de pruebas
+coverage/
+.nyc_output/
+
+# Archivos compilados
+dist/
+build/
+*.tsbuildinfo
+
+# Archivos de respaldo
+*.bak
+*.tmp

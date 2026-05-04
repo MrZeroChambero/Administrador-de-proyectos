@@ -1,0 +1,6 @@
+npm config set ignore-scripts true
+
+pnpm install --ignore-scripts
+
+# .npmrc en la raíz de tu proyecto
+minimumReleaseAge = 4320
