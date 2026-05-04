@@ -57,27 +57,28 @@ Aplicación estilo Trello para la gestión de proyectos personales, metas, plazo
 
 ## 📁 Estructura del proyecto (actual)
 
+````text
 Administrador-de-proyectos/
+├── src/
+│   ├── db/
+│   │   └── database.js          # Clase de conexión a MySQL
+│   ├── tablas/                  # Clases por tabla
+│   │   ├── archivos.js
+│   │   ├── configuracion.js
+│   │   ├── dependencias.js
+│   │   ├── habilidad.js
+│   │   ├── informacion.js
+│   │   ├── meta.js
+│   │   ├── objetivoMeta.js
+│   │   ├── personaHabilidad.js
+│   │   ├── personaMetas.js
+│   │   ├── temas.js
+│   │   ├── usuario.js
+│   │   └── usuarioPersona.js
+│   ├── index.js                 # Exportación unificada
+│   └── (futuro: rutas, controladores, frontend)
 ├── .env
 ├── package.json
-├── src/
-│ ├── db/
-│ │ └── database.js # Clase de conexión a MySQL
-│ ├── tablas/ # Clases por tabla
-│ │ ├── informacion.js
-│ │ ├── meta.js
-│ │ ├── objetivoMeta.js
-│ │ ├── archivos.js
-│ │ ├── habilidad.js
-│ │ ├── personaHabilidad.js
-│ │ ├── personaMetas.js
-│ │ ├── usuario.js
-│ │ ├── configuracion.js
-│ │ ├── dependencias.js
-│ │ ├── temas.js
-│ │ └── usuarioPersona.js
-│ ├── index.js # Exportación unificada
-│ └── (futuro: rutas, controladores, frontend)
 └── README.md
 
 ## 🚀 Instalación y configuración
@@ -87,7 +88,7 @@ Administrador-de-proyectos/
 ```bash
 git clone https://github.com/tuusuario/Administrador-de-proyectos.git
 cd Administrador-de-proyectos
-```
+````
 
 ## 2. Instalar dependencias
 
