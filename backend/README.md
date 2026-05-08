@@ -80,6 +80,8 @@ Administrador-de-proyectos/
 ├── .env
 ├── package.json
 └── README.md
+```
+
 
 ## 🚀 Instalación y configuración
 
