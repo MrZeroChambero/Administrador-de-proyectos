@@ -7,14 +7,20 @@ class PersonaHabilidad {
   async crear(datos) {
     const { fk_persona, fk_habilidad } = datos;
     const sql = `INSERT INTO ${this.table} (fk_persona, fk_habilidad) VALUES (?, ?)`;
-    const result = await this.db.query(sql, [fk_persona, fk_habilidad]);
-    return { id_persona_habilidad: result.insertId };
+    const resultado = await this.db.query(sql, [fk_persona, fk_habilidad]);
+    if (resultado.affectedRows === 0) {
+      return { id_persona_habilidad: null, evento: false };
+    }
+    return { id_persona_habilidad: resultado.insertId, evento: true };
   }
 
   async eliminar(id_persona_habilidad) {
     const sql = `DELETE FROM ${this.table} WHERE id_persona_habilidad = ?`;
-    await this.db.query(sql, [id_persona_habilidad]);
-    return { deleted: true };
+    const resultado = await this.db.query(sql, [id_persona_habilidad]);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async actualizar(id_persona_habilidad, campos) {
@@ -28,13 +34,20 @@ class PersonaHabilidad {
     const sql = `UPDATE ${this.table} SET ${updates.join(
       ", "
     )} WHERE id_persona_habilidad = ?`;
-    await this.db.query(sql, values);
-    return { updated: true };
+    const resultado = await this.db.query(sql, values);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   // No tiene campo de estado, retorna todos
@@ -44,8 +57,11 @@ class PersonaHabilidad {
 
   async consultarID(id_persona_habilidad) {
     const sql = `SELECT * FROM ${this.table} WHERE id_persona_habilidad = ?`;
-    const rows = await this.db.query(sql, [id_persona_habilidad]);
-    return rows[0] || null;
+    const resultado = await this.db.query(sql, [id_persona_habilidad]);
+    if (resultado.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: resultado[0] };
   }
 
   async buscarPorAtributos(atributos) {
@@ -58,7 +74,11 @@ class PersonaHabilidad {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (resultado.length === 0) {
+      return { evento: true, data: [] };
+    }
+    return { evento: true, data: resultado };
   }
 }
 

@@ -17,13 +17,19 @@ class Archivos {
       ruta_archivo,
       extension,
     ]);
-    return { id_archivo: result.insertId };
+    if (result.affectedRows === 0) {
+      return { id_archivo: null, evento: false };
+    }
+    return { id_archivo: result.insertId, evento: true };
   }
 
   async eliminar(id_archivo) {
     const sql = `DELETE FROM ${this.table} WHERE id_archivo = ?`;
-    await this.db.query(sql, [id_archivo]);
-    return { deleted: true };
+    const resultado = await this.db.query(sql, [id_archivo]);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async actualizar(id_archivo, campos) {
@@ -37,13 +43,20 @@ class Archivos {
     const sql = `UPDATE ${this.table} SET ${updates.join(
       ", "
     )} WHERE id_archivo = ?`;
-    await this.db.query(sql, values);
-    return { updated: true };
+    const resultado = await this.db.query(sql, values);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   async consultarActivos() {
@@ -54,7 +67,10 @@ class Archivos {
   async consultarID(id_archivo) {
     const sql = `SELECT * FROM ${this.table} WHERE id_archivo = ?`;
     const rows = await this.db.query(sql, [id_archivo]);
-    return rows[0] || null;
+    if (rows.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: rows[0] || null };
   }
 
   async buscarPorAtributos(atributos) {
@@ -67,7 +83,11 @@ class Archivos {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (resultado.length === 0) {
+      return { evento: true, data: [] };
+    }
+    return { evento: true, data: resultado };
   }
 }
 

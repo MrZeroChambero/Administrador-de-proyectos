@@ -7,14 +7,20 @@ class UsuarioPersona {
   async crear(datos) {
     const { fk_persona, fk_usuario } = datos;
     const sql = `INSERT INTO ${this.table} (fk_persona, fk_usuario) VALUES (?, ?)`;
-    const result = await this.db.query(sql, [fk_persona, fk_usuario]);
-    return { id_usuario_persona: result.insertId };
+    const resultado = await this.db.query(sql, [fk_persona, fk_usuario]);
+    if (resultado.affectedRows === 0) {
+      return { id_usuario_persona: null, evento: false };
+    }
+    return { id_usuario_persona: resultado.insertId, evento: true };
   }
 
   async eliminar(id_usuario_persona) {
     const sql = `DELETE FROM ${this.table} WHERE id_usuario_persona = ?`;
-    await this.db.query(sql, [id_usuario_persona]);
-    return { deleted: true };
+    const resultado = await this.db.query(sql, [id_usuario_persona]);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async actualizar(id_usuario_persona, campos) {
@@ -28,13 +34,20 @@ class UsuarioPersona {
     const sql = `UPDATE ${this.table} SET ${updates.join(
       ", "
     )} WHERE id_usuario_persona = ?`;
-    await this.db.query(sql, values);
-    return { updated: true };
+    const resultado = await this.db.query(sql, values);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   async consultarActivos() {
@@ -44,8 +57,11 @@ class UsuarioPersona {
 
   async consultarID(id_usuario_persona) {
     const sql = `SELECT * FROM ${this.table} WHERE id_usuario_persona = ?`;
-    const rows = await this.db.query(sql, [id_usuario_persona]);
-    return rows[0] || null;
+    const resultado = await this.db.query(sql, [id_usuario_persona]);
+    if (resultado.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: resultado[0] || null };
   }
 
   async buscarPorAtributos(atributos) {
@@ -58,7 +74,19 @@ class UsuarioPersona {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (resultado.length === 0) {
+      return { evento: true, data: [] };
+    }
+    return { evento: true, data: resultado };
+  }
+
+  validarDatos(datos) {
+    const { fk_persona, fk_usuario } = datos;
+    if (!fk_persona || !fk_usuario) {
+      return { evento: false, mensaje: [atributos:"mensaje"]};
+    }
+    return { e: true, mensaje: "Datos válidos" };
   }
 }
 

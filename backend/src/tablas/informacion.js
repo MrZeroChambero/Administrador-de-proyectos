@@ -20,13 +20,19 @@ class Informacion {
       nombre_informacion,
       estado_informacion,
     ]);
-    return { id_informacion: result.insertId };
+    if (result.affectedRows === 0) {
+      return { id_informacion: null, evento: false };
+    }
+    return { id_informacion: result.insertId, evento: true };
   }
 
   async eliminar(id_informacion) {
     const sql = `DELETE FROM ${this.table} WHERE id_informacion = ?`;
-    await this.db.query(sql, [id_informacion]);
-    return { deleted: true };
+    const result = await this.db.query(sql, [id_informacion]);
+    if (result.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async actualizar(id_informacion, campos) {
@@ -40,24 +46,38 @@ class Informacion {
     const sql = `UPDATE ${this.table} SET ${updates.join(
       ", "
     )} WHERE id_informacion = ?`;
-    await this.db.query(sql, values);
-    return { updated: true };
+    const result = await this.db.query(sql, values);
+    if (result.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   async consultarActivos() {
     const sql = `SELECT * FROM ${this.table} WHERE estado_informacion IN ('en espera', 'en progreso')`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   async consultarID(id_informacion) {
     const sql = `SELECT * FROM ${this.table} WHERE id_informacion = ?`;
-    const rows = await this.db.query(sql, [id_informacion]);
-    return rows[0] || null;
+    const resultado = await this.db.query(sql, [id_informacion]);
+    if (resultado.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: resultado[0] || null };
   }
 
   async buscarPorAtributos(atributos) {
@@ -70,7 +90,11 @@ class Informacion {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (resultado.length === 0) {
+      return { evento: true, data: [] };
+    }
+    return { evento: true, data: resultado };
   }
 }
 

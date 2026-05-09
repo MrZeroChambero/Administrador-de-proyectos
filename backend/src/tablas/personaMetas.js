@@ -8,13 +8,19 @@ class PersonaMetas {
     const { fk_persona, fk_meta, prosito } = datos;
     const sql = `INSERT INTO ${this.table} (fk_persona, fk_meta, prosito) VALUES (?, ?, ?)`;
     const result = await this.db.query(sql, [fk_persona, fk_meta, prosito]);
-    return { id_persona_metas: result.insertId };
+    if (result.affectedRows === 0) {
+      return { id_persona_metas: null, evento: false };
+    }
+    return { id_persona_metas: result.insertId, evento: true };
   }
 
   async eliminar(id_persona_metas) {
     const sql = `DELETE FROM ${this.table} WHERE id_persona_metas = ?`;
-    await this.db.query(sql, [id_persona_metas]);
-    return { deleted: true };
+    const resultado = await this.db.query(sql, [id_persona_metas]);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async actualizar(id_persona_metas, campos) {
@@ -29,12 +35,19 @@ class PersonaMetas {
       ", "
     )} WHERE id_persona_metas = ?`;
     await this.db.query(sql, values);
-    return { updated: true };
+    if (updates.length === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   // No tiene campo de estado, retorna todos
@@ -44,8 +57,11 @@ class PersonaMetas {
 
   async consultarID(id_persona_metas) {
     const sql = `SELECT * FROM ${this.table} WHERE id_persona_metas = ?`;
-    const rows = await this.db.query(sql, [id_persona_metas]);
-    return rows[0] || null;
+    const resultado = await this.db.query(sql, [id_persona_metas]);
+    if (resultado.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: resultado[0] };
   }
 
   async buscarPorAtributos(atributos) {
@@ -58,7 +74,11 @@ class PersonaMetas {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (resultado.length === 0) {
+      return { evento: true, data: [] };
+    }
+    return { evento: true, data: resultado };
   }
 }
 

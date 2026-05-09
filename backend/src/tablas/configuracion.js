@@ -15,13 +15,19 @@ class Configuracion {
       letra_color,
       fk_tema,
     ]);
-    return { id_configuracion: result.insertId };
+    if (result.affectedRows === 0) {
+      return { id_configuracion: null, evento: false };
+    }
+    return { id_configuracion: result.insertId, evento: true };
   }
 
   async eliminar(id_configuracion) {
     const sql = `DELETE FROM ${this.table} WHERE id_configuracion = ?`;
-    await this.db.query(sql, [id_configuracion]);
-    return { deleted: true };
+    const resultado = await this.db.query(sql, [id_configuracion]);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async actualizar(id_configuracion, campos) {
@@ -35,13 +41,20 @@ class Configuracion {
     const sql = `UPDATE ${this.table} SET ${updates.join(
       ", "
     )} WHERE id_configuracion = ?`;
-    await this.db.query(sql, values);
-    return { updated: true };
+    const resultado = await this.db.query(sql, values);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   // No tiene campo de estado, retorna todos
@@ -51,8 +64,11 @@ class Configuracion {
 
   async consultarID(id_configuracion) {
     const sql = `SELECT * FROM ${this.table} WHERE id_configuracion = ?`;
-    const rows = await this.db.query(sql, [id_configuracion]);
-    return rows[0] || null;
+    const resultado = await this.db.query(sql, [id_configuracion]);
+    if (resultado.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: resultado[0] || null };
   }
 
   async buscarPorAtributos(atributos) {
@@ -65,7 +81,11 @@ class Configuracion {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (resultado.length === 0) {
+      return { evento: true, data: [] };
+    }
+    return { evento: true, data: resultado };
   }
 }
 

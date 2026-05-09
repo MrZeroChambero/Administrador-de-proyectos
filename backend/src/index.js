@@ -1,15 +1,15 @@
-const Informacion = require("./tablas/informacion");
-const Meta = require("./tablas/meta");
-const ObjetivoMeta = require("./tablas/objetivoMeta");
-const Archivos = require("./tablas/archivos");
-const Habilidad = require("./tablas/habilidad");
-const PersonaHabilidad = require("./tablas/personaHabilidad");
-const PersonaMetas = require("./tablas/personaMetas");
-const Usuario = require("./tablas/usuario");
-const Configuracion = require("./tablas/configuracion");
-const Dependencias = require("./tablas/dependencias");
-const Temas = require("./tablas/temas");
-const UsuarioPersona = require("./tablas/usuarioPersona");
+const Informacion = require("./Tablas/informacion");
+const Meta = require("./Tablas/meta");
+const ObjetivoMeta = require("./Tablas/objetivoMeta");
+const Archivos = require("./Tablas/archivos");
+const Habilidad = require("./Tablas/habilidad");
+const PersonaHabilidad = require("./Tablas/personaHabilidad");
+const PersonaMetas = require("./Tablas/personaMetas");
+const Usuario = require("./Tablas/usuario");
+const Configuracion = require("./Tablas/configuracion");
+const Dependencias = require("./Tablas/dependencias");
+const Temas = require("./Tablas/temas");
+const UsuarioPersona = require("./Tablas/usuarioPersona");
 
 module.exports = {
   Informacion,

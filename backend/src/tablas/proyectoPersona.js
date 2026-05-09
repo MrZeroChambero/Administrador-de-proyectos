@@ -7,14 +7,24 @@ class ProyectoPersonaModel {
   async crear(relacion) {
     const { fk_persona, fk_proyecto, prosito } = relacion;
     const sql = `INSERT INTO ${this.table} (fk_persona, fk_proyecto, prosito) VALUES (?, ?, ?)`;
-    const result = await this.db.query(sql, [fk_persona, fk_proyecto, prosito]);
-    return { id_proyecto_persona: result.insertId };
+    const resultado = await this.db.query(sql, [
+      fk_persona,
+      fk_proyecto,
+      prosito,
+    ]);
+    if (resultado.affectedRows === 0) {
+      return { id_proyecto_persona: null, evento: false };
+    }
+    return { id_proyecto_persona: resultado.insertId, evento: true };
   }
 
   async eliminar(id_proyecto_persona) {
     const sql = `DELETE FROM ${this.table} WHERE id_proyecto_persona = ?`;
-    await this.db.query(sql, [id_proyecto_persona]);
-    return { deleted: true };
+    const resultado = await this.db.query(sql, [id_proyecto_persona]);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async actualizar(id_proyecto_persona, campos) {
@@ -29,12 +39,19 @@ class ProyectoPersonaModel {
       ", "
     )} WHERE id_proyecto_persona = ?`;
     await this.db.query(sql, values);
-    return { updated: true };
+    if (updates.length === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   // Relaciones activas: la persona debe estar activa y el proyecto activo (en espera o en progreso)
@@ -47,13 +64,20 @@ class ProyectoPersonaModel {
       WHERE p.estado_persona = 'activo' 
         AND pr.estado_proyecto IN ('en espera', 'en progreso')
     `;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   async consultarID(id_proyecto_persona) {
     const sql = `SELECT * FROM ${this.table} WHERE id_proyecto_persona = ?`;
-    const rows = await this.db.query(sql, [id_proyecto_persona]);
-    return rows[0] || null;
+    const resultado = await this.db.query(sql, [id_proyecto_persona]);
+    if (resultado.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: resultado[0] || null };
   }
 
   async buscarPorAtributos(atributos) {
@@ -66,7 +90,11 @@ class ProyectoPersonaModel {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (resultado.length === 0) {
+      return { evento: true, data: [] };
+    }
+    return { evento: true, data: resultado };
   }
 }
 

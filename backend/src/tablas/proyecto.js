@@ -19,7 +19,7 @@ class ProyectoModel {
     const sql = `INSERT INTO ${this.table} 
       (id_proyecto, nombre, descripcion, estado_proyecto, progreso, icono_proyecto, fecha_inicio, fecha_fin) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-    await this.db.query(sql, [
+    const resultado = await this.db.query(sql, [
       id_proyecto,
       nombre,
       descripcion,
@@ -29,14 +29,20 @@ class ProyectoModel {
       fecha_inicio,
       fecha_fin,
     ]);
-    return { id_proyecto };
+    if (resultado.affectedRows === 0) {
+      return { id_proyecto: null, evento: false };
+    }
+    return { id_proyecto: resultado.insertId, evento: true };
   }
 
   // Eliminar proyecto por su ID
   async eliminar(id_proyecto) {
     const sql = `DELETE FROM ${this.table} WHERE id_proyecto = ?`;
     await this.db.query(sql, [id_proyecto]);
-    return { deleted: true };
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   // Actualizar proyecto (solo campos enviados)
@@ -51,27 +57,42 @@ class ProyectoModel {
     const sql = `UPDATE ${this.table} SET ${updates.join(
       ", "
     )} WHERE id_proyecto = ?`;
-    await this.db.query(sql, values);
-    return { updated: true };
+    const resultado = await this.db.query(sql, values);
+    if (resultado.affectedRows === 0) {
+      return { evento: false };
+    }
+    return { evento: true };
   }
 
   // Consultar todos los proyectos
   async consultarTodos() {
     const sql = `SELECT * FROM ${this.table}`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
+  º;
 
   // Consultar proyectos activos (estado 'en espera' o 'en progreso')
   async consultarActivos() {
     const sql = `SELECT * FROM ${this.table} WHERE estado_proyecto IN ('en espera', 'en progreso')`;
-    return await this.db.query(sql);
+    const resultado = await this.db.query(sql);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 
   // Consultar proyecto por ID
   async consultarID(id_proyecto) {
     const sql = `SELECT * FROM ${this.table} WHERE id_proyecto = ?`;
-    const rows = await this.db.query(sql, [id_proyecto]);
-    return rows[0] || null;
+    const resultado = await this.db.query(sql, [id_proyecto]);
+    if (resultado.length === 0) {
+      return { evento: true, data: null };
+    }
+    return { evento: true, data: resultado[0] || null };
   }
 
   // Búsqueda por atributos (ej: { nombre: 'API', estado_proyecto: 'en progreso' })
@@ -85,7 +106,11 @@ class ProyectoModel {
     const sql = `SELECT * FROM ${this.table} ${
       conditions.length ? "WHERE " + conditions.join(" AND ") : ""
     }`;
-    return await this.db.query(sql, values);
+    const resultado = await this.db.query(sql, values);
+    if (!resultado) {
+      return { evento: false };
+    }
+    return { evento: true, data: resultado };
   }
 }
 
