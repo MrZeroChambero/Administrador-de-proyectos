@@ -92,12 +92,22 @@ class Validador {
         }
       }
 
-      // 8. Validar formato de email (opcional si se requiere)
+      // 8. Validar formato de email
       if (reglas.email && typeof valor === "string") {
         if (!this.validarEmail(valor)) {
           errores[
             campo
           ] = `Debe ser una dirección de correo electrónico válida.`;
+          continue;
+        }
+      }
+
+      // 9. Validar ID numérico o UUID (usando el método específico)
+      if (reglas.validarId) {
+        const tipoId = reglas.tipoId || "uuid"; // 'integer' o 'uuid'
+        const resultadoId = this.validarId(valor, tipoId);
+        if (!resultadoId.evento) {
+          errores[campo] = resultadoId.mensaje;
           continue;
         }
       }
@@ -146,6 +156,135 @@ class Validador {
   static validarEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
+  }
+
+  /**
+   * Valida que un ID sea obligatorio y tenga el formato correcto (entero positivo o UUID).
+   * @param {*} id - El ID a validar
+   * @param {string} tipoId - 'integer' o 'uuid'
+   * @returns {Object} { evento: boolean, mensaje?: string }
+   */
+  static validarId(id, tipoId = "uuid") {
+    // 1. Obligatorio
+    if (id === undefined || id === null || id === "") {
+      return { evento: false, mensaje: "El ID es obligatorio." };
+    }
+
+    // 2. Validar según tipo
+    if (tipoId === "integer") {
+      if (!Number.isInteger(id) && !/^\d+$/.test(id)) {
+        return {
+          evento: false,
+          mensaje: "El ID debe ser un número entero positivo.",
+        };
+      }
+      const num = Number(id);
+      if (num <= 0) {
+        return {
+          evento: false,
+          mensaje: "El ID debe ser un número entero positivo mayor a cero.",
+        };
+      }
+      return { evento: true };
+    } else if (tipoId === "uuid") {
+      // UUID versión 4 (estándar)
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return {
+          evento: false,
+          mensaje:
+            "El ID debe ser un UUID válido (ej: 123e4567-e89b-12d3-a456-426614174000).",
+        };
+      }
+      return { evento: true };
+    } else {
+      return {
+        evento: false,
+        mensaje: `Tipo de ID '${tipoId}' no soportado. Use 'integer' o 'uuid'.`,
+      };
+    }
+  }
+
+  /**
+   * Genera un esquema de validación para un campo ID (para usar dentro de Validador.validar).
+   * @param {string} tipoId - 'integer' o 'uuid'
+   * @param {boolean} obligatorio - por defecto true
+   * @returns {Object} esquema para el campo ID
+   */
+  static esquemaId(tipoId = "uuid", obligatorio = true) {
+    const esquema = {
+      obligatorio: obligatorio,
+      validarId: true,
+      tipoId: tipoId,
+    };
+    if (tipoId === "integer") {
+      esquema.tipo = "number";
+    } else {
+      esquema.tipo = "string";
+    }
+    return esquema;
+  }
+
+  /**
+   * Limpia los campos de un objeto o array, dejando solo los permitidos.
+   * @param {Object|Array} data - Datos a limpiar
+   * @param {Array} permitirCampos - Lista de campos que se conservan
+   * @returns {Object|Array} Datos filtrados
+   */
+  static LimpiarCampos(data, permitirCampos) {
+    if (Array.isArray(data)) {
+      return data.map((item) => this.LimpiarCampos(item, permitirCampos));
+    }
+    const limpios = {};
+    for (const campo of permitirCampos) {
+      if (data.hasOwnProperty(campo)) {
+        limpios[campo] = data[campo];
+      }
+    }
+    return limpios;
+  }
+
+  /**
+   * Limpia y sanitiza los datos para enviar como JSON seguro.
+   * - Restringe a los campos permitidos.
+   * - Escapa caracteres HTML en campos de texto especificados.
+   * @param {Object|Array} data - Datos crudos (pueden venir de la BD)
+   * @param {Array} allowedFields - Lista de campos permitidos en la respuesta
+   * @param {Array} fieldsToEscape - Lista de campos que contienen texto a escapar (HTML)
+   * @returns {Object|Array} Datos limpios y seguros
+   */
+  static sanitizarSalida(data, allowedFields = [], fieldsToEscape = []) {
+    // 1. Limpiar campos (restringir solo a los permitidos)
+    let limpio = this.LimpiarCampos(data, allowedFields);
+
+    // 2. Función auxiliar para escapar HTML en un string
+    const escapeHtml = (str) => {
+      if (typeof str !== "string") return str;
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    };
+
+    // 3. Aplicar escape recursivo sobre los campos especificados
+    const aplicarEscape = (obj) => {
+      if (!obj || typeof obj !== "object") return obj;
+      if (Array.isArray(obj)) {
+        return obj.map((item) => aplicarEscape(item));
+      }
+      const result = { ...obj };
+      for (const campo of fieldsToEscape) {
+        if (result.hasOwnProperty(campo) && typeof result[campo] === "string") {
+          result[campo] = escapeHtml(result[campo]);
+        }
+      }
+      return result;
+    };
+
+    return aplicarEscape(limpio);
   }
 }
 

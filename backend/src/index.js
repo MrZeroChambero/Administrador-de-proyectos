@@ -10,7 +10,7 @@ const Configuracion = require("./Tablas/configuracion");
 const Dependencias = require("./Tablas/dependencias");
 const Temas = require("./Tablas/temas");
 const UsuarioPersona = require("./Tablas/usuarioPersona");
-
+const Validador = require("./Herramientas/Validador.js");
 module.exports = {
   Informacion,
   Meta,
@@ -24,4 +24,5 @@ module.exports = {
   Dependencias,
   Temas,
   UsuarioPersona,
+  Validador,
 };
